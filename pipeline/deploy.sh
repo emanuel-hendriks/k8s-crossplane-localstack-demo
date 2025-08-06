@@ -15,10 +15,10 @@ readonly YELLOW='\033[1;33m'
 readonly RED='\033[0;31m'
 readonly NC='\033[0m'
 
-print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_info() { echo -e "${BLUE}  $1${NC}"; }
+print_success() { echo -e "${GREEN} $1${NC}"; }
+print_warning() { echo -e "${YELLOW} $1${NC}"; }
+print_error() { echo -e "${RED} $1${NC}"; }
 
 # Configuration
 readonly CROSSPLANE_NAMESPACE="crossplane-system"
@@ -212,28 +212,28 @@ main() {
     local duration=$((end_time - start_time))
     
     echo ""
-    echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
+    echo "DEPLOYMENT COMPLETED SUCCESSFULLY!"
     echo "===================================="
     echo ""
-    echo "📊 Deployment Summary:"
+    echo "Deployment Summary:"
     echo "  • Duration: ${duration}s"
     echo "  • AWS Resources: 4 created (SNS, SQS, DynamoDB, Subscription)"
     echo "  • Applications: 3 deployed (Producer, Consumer, DynamoDB Admin)"
     echo "  • LocalStack: Running and configured"
     echo ""
-    echo "🔗 Access Information:"
+    echo "Access Information:"
     echo "  • DynamoDB Admin: ./admin-bg.sh start"
     echo "  • Or manually: kubectl port-forward svc/dynamodb-admin-dynamodb-admin 8001:8001"
     echo "  • Then open: http://localhost:8001"
     echo ""
-    echo "📝 Monitor logs:"
+    echo "Monitor logs:"
     echo "  • Producer: kubectl logs -l app=producer-producer -f"
     echo "  • Consumer: kubectl logs -l app=consumer-consumer -f"
     echo ""
-    echo "🧪 Run tests:"
+    echo "Run tests:"
     echo "  • ./test.sh"
     echo ""
-    echo "🧹 Cleanup when done:"
+    echo "Cleanup when done:"
     echo "  • ./cleanup.sh"
 }
 

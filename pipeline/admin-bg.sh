@@ -12,17 +12,17 @@ readonly YELLOW='\033[1;33m'
 readonly RED='\033[0;31m'
 readonly NC='\033[0m'
 
-print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
+print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
+print_success() { echo -e "${GREEN} $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_error() { echo -e "${RED} $1${NC}"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$SCRIPT_DIR/.admin-port-forward.pid"
 
 case "${1:-start}" in
     "start")
-        echo "🚀 Starting DynamoDB Admin Interface (Background)"
+        echo "Starting DynamoDB Admin Interface (Background)"
         echo "================================================"
         
         # Check if already running
@@ -82,7 +82,7 @@ case "${1:-start}" in
         ;;
         
     "stop")
-        echo "🛑 Stopping DynamoDB Admin Interface"
+        echo "Stopping DynamoDB Admin Interface"
         echo "===================================="
         
         if [ -f "$PID_FILE" ]; then
@@ -100,7 +100,7 @@ case "${1:-start}" in
         ;;
         
     "status")
-        echo "📊 DynamoDB Admin Interface Status"
+        echo "DynamoDB Admin Interface Status"
         echo "=================================="
         
         if [ -f "$PID_FILE" ]; then
@@ -123,7 +123,7 @@ case "${1:-start}" in
         ;;
         
     "restart")
-        echo "🔄 Restarting DynamoDB Admin Interface"
+        echo "Restarting DynamoDB Admin Interface"
         echo "======================================"
         "$0" stop
         sleep 2

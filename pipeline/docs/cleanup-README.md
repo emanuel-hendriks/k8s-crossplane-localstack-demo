@@ -101,34 +101,34 @@ Cleaning Up Cloud-Native Event-Driven Architecture
 
 Step 1: Removing Applications
 ============================
-✅ producer removed successfully
-✅ consumer removed successfully  
-✅ dynamodb-admin removed successfully
+producer removed successfully
+consumer removed successfully  
+dynamodb-admin removed successfully
 
 Step 2: Removing AWS Resources
 ==============================
-✅ SNS Topic removed
-✅ SQS Queue removed
-✅ DynamoDB Table removed
-✅ SNS-SQS Subscription removed
+SNS Topic removed
+SQS Queue removed
+DynamoDB Table removed
+SNS-SQS Subscription removed
 
 Step 3: Removing Provider Configuration
 =======================================
-✅ AWS Provider removed
-✅ ProviderConfig removed
-✅ AWS credentials secret removed
+AWS Provider removed
+ProviderConfig removed
+AWS credentials secret removed
 
 Step 4: Removing LocalStack
 ==========================
-✅ LocalStack namespace removed
+LocalStack namespace removed
 
 Step 5: Cleaning Up Test Resources
 =================================
-✅ Test pods cleaned up
+Test pods cleaned up
 
 Step 6: Verification
 ===================
-✅ All checks passed: 15/15
+All checks passed: 15/15
 
 Environment Status:
   All application resources removed
