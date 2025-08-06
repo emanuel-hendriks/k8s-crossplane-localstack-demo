@@ -2,8 +2,8 @@
 
 ## 🚀 Quick Start (5 minutes)
 
-1. `./deploy.sh` - Deploy everything
-2. `./test.sh` - Verify it works  
+1. `./pipeline/deploy.sh` - Deploy everything
+2. `./pipeline/test.sh` - Verify it works  
 3. `kubectl port-forward svc/dynamodb-admin-dynamodb-admin 8001:8001`
 4. Open http://localhost:8001 to see events flowing
 
@@ -27,9 +27,9 @@
 
 ## Overview
 
-This project implements a cloud-native event-driven architecture using Docker Desktop Kubernetes, Crossplane with Upbound AWS providers, and Helm charts. The solution demonstrates a producer-consumer pattern with AWS services (SNS, SQS, DynamoDB) running locally via LocalStack.
+This project implements a cloud-native event-driven architecture using Docker Desktop Kubernetes, Crossplane, and Helm. The solution demonstrates a producer-consumer pattern with AWS services (SNS, SQS, DynamoDB) simulated locally via LocalStack.
 
-The event flow begins with a containerized Producer application that generates timestamped events and publishes them to an AWS SNS topic. These events are automatically routed through an SQS queue via an SNS subscription, where a Consumer application retrieves and processes them before storing the data in a DynamoDB table. A web-based DynamoDB Admin interface provides real-time visualization of the stored events. All AWS services are simulated locally through LocalStack, which exposes a unified API endpoint that the applications connect to via standard AWS SDKs. This design showcases Infrastructure as Code principles through Crossplane's declarative resource management, while maintaining application portability through Helm's templating.
+**Architecture Flow**: Producer generates events → SNS topic → SQS queue → Consumer processes events → DynamoDB storage. A web-based admin interface provides real-time visualization of stored events. All AWS services run locally through LocalStack, showcasing Infrastructure as Code principles via Crossplane's declarative resource management and application portability through Helm templating.
 
 ## Application Architecture
 
@@ -171,27 +171,36 @@ The Producer application (`ghcr.io/justtrackio/devopstest-producer:latest`) runs
     └ Data available via DynamoDB Admin UI at http://localhost:8001
 
 **3. Component Details**:
-- **Producer** (`ghcr.io/justtrackio/devopstest-producer:latest`): Publishes events to SNS topic `justtrack-dev-devops-producer-events` in the `eu-central-1` region
-- **SNS-SQS Subscription**: Automatically routes events from the topic to the SQS queue `justtrack-dev-devops-consumer-events`
-- **Consumer** (`ghcr.io/justtrackio/devopstest-consumer:latest`): Polls the SQS queue, processes events, and stores them in DynamoDB
-- **DynamoDB Storage**: Events are persisted in table `justtrack-dev-devops-consumer-events` with `Id` as the hash key (String type)
-- **Data Visualization**: DynamoDB Admin provides a web interface at `http://localhost:8001` to view and manage stored events
+- **Producer**: Publishes events to SNS topic every second
+- **SNS-SQS Subscription**: Automatically routes events from topic to queue
+- **Consumer**: Polls SQS queue, processes events, stores in DynamoDB
+- **DynamoDB Storage**: Events persisted with `Id` as hash key (String type)
+- **Data Visualization**: Web interface at `http://localhost:8001`
 
 ## Deployment Process
 
-The deployment of this application is orchestrated through a deployment automation script, [pipeline/deploy.sh](pipeline/deploy.sh). For documentation refer to: [pipeline/docs/deploy-README.md](pipeline/docs/deployment-README.md).
+The `pipeline/deploy.sh` script automates the complete deployment of the cloud-native event-driven architecture. The deployment follows these phases:
 
-## Dry Run Testing
+1. **Prerequisites Validation** - Verifies required tools and Kubernetes connectivity
+2. **Crossplane Installation** - Installs/upgrades Crossplane infrastructure management platform
+3. **AWS Provider Setup** - Configures AWS provider for LocalStack integration
+4. **LocalStack Deployment** - Deploys AWS services simulator
+5. **Provider Configuration** - Configures AWS provider with LocalStack endpoints
+6. **AWS Resources Creation** - Creates SNS, SQS, DynamoDB resources via Crossplane
+7. **Application Deployment** - Deploys Producer, Consumer, and DynamoDB Admin via Helm
+8. **Verification** - Validates all components are running correctly
 
-For safe exploration of the deployment process without creating actual resources [pipeline/dry_run](./pipeline/dry_run.sh). For documentation refer to [pipeline/docs/deploy-README.md](pipeline/docs/dry-run-README.md).
+The script completes in approximately 2-3 minutes and provides colored output showing progress and status for each phase.
+
+For detailed technical documentation, refer to: [pipeline/docs/deploy-README.md](pipeline/docs/deploy-README.md)
 
 ## Test
 
-The [`test.sh`](./test.sh) script provides comprehensive testing and verification of the deployed cloud-native event-driven architecture. It validates the entire system from infrastructure components to data flow, ensuring all components are functioning correctly.
+The [`pipeline/test.sh`](pipeline/test.sh) script provides comprehensive testing and verification of the deployed cloud-native event-driven architecture. It validates the entire system from infrastructure components to data flow, ensuring all components are functioning correctly.
 
 # Cleanup 
 
-The [`cleanup.sh`](../cleanup.sh) script provides comprehensive cleanup of all deployed cloud-native infrastructure resources. It safely removes all components created by the deployment script, ensuring a clean environment for future deployments or complete system removal.
+The [`pipeline/cleanup.sh`](pipeline/cleanup.sh) script provides comprehensive cleanup of all deployed cloud-native infrastructure resources. It safely removes all components created by the deployment script, ensuring a clean environment for future deployments or complete system removal.
 
 
 ## 📁 Project Structure
@@ -206,12 +215,13 @@ task1/
 │   ├── deploy.sh                       # Main deployment automation script
 │   ├── test.sh                         # Comprehensive testing and verification
 │   ├── cleanup.sh                      # Environment cleanup and resource removal
-│   ├── dry_run.sh                      # Deployment simulation (no actual resources)
+│   ├── admin.sh                        # DynamoDB admin interface access
+│   ├── admin-bg.sh                     # Background DynamoDB admin interface
 │   └── docs/                           # Detailed script documentation
 │       ├── deploy-README.md            # Deploy script documentation
 │       ├── test-README.md              # Test script documentation
 │       ├── cleanup-README.md           # Cleanup script documentation
-│       └── dry-run-README.md           # Dry run script documentation
+│       └── admin-README.md             # Admin interface documentation
 ├── crossplane/                         # Infrastructure as Code definitions
 │   ├── provider.yaml                   # Crossplane AWS provider configuration
 │   ├── provider-config.yaml            # LocalStack endpoint configuration
@@ -780,7 +790,7 @@ spec:
 
 1. **Deploy the complete infrastructure**:
    ```bash
-   ./deploy.sh
+   ./pipeline/deploy.sh
    ```
 
 2. **Monitor the deployment**:
@@ -800,7 +810,7 @@ spec:
 
 Run the comprehensive test suite:
 ```bash
-./test.sh
+./pipeline/test.sh
 ```
 
 ### Data Visualization
@@ -831,7 +841,7 @@ kubectl scale deployment consumer-consumer --replicas=2
 
 Remove all resources:
 ```bash
-./cleanup.sh
+./pipeline/cleanup.sh
 ```
 
 ## Evaluation Criteria Fulfillment
