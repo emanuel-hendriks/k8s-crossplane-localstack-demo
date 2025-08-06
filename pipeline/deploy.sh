@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Cloud-Native Infrastructure Deployment Script - RELIABLE VERSION
-# Based on documentation insights - skips problematic provider waiting
+# Cloud-Native Infrastructure Deployment Script - COMPREHENSIVE DEMO VERSION
+# Includes integrated DynamoDB Admin interface for complete demo experience
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PID_FILE="$SCRIPT_DIR/.admin-port-forward.pid"
 
 # Colors
 readonly GREEN='\033[0;32m'
@@ -25,8 +26,8 @@ readonly CROSSPLANE_NAMESPACE="crossplane-system"
 readonly LOCALSTACK_NAMESPACE="localstack"
 readonly AWS_REGION="eu-central-1"
 
-echo "🚀 Deploying Cloud-Native Event-Driven Architecture"
-echo "===================================================="
+echo "Deploying Cloud-Native Event-Driven Architecture"
+echo "================================================="
 echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 
@@ -180,6 +181,73 @@ deploy_applications() {
     print_success "All applications deployed successfully"
 }
 
+# Start DynamoDB Admin Interface (integrated from admin-bg.sh)
+start_admin_interface() {
+    print_info "=== Starting DynamoDB Admin Interface ==="
+    
+    # Check if already running
+    if [ -f "$PID_FILE" ]; then
+        OLD_PID=$(cat "$PID_FILE")
+        if kill -0 "$OLD_PID" 2>/dev/null; then
+            print_warning "Admin interface already running (PID: $OLD_PID)"
+            print_info "Access at: http://localhost:8001"
+            return 0
+        else
+            rm -f "$PID_FILE"
+        fi
+    fi
+    
+    # Check if service exists
+    if ! kubectl get svc dynamodb-admin-dynamodb-admin >/dev/null 2>&1; then
+        print_error "DynamoDB Admin service not found"
+        return 1
+    fi
+    
+    # Start port-forward in background
+    print_info "Starting port-forward in background..."
+    kubectl port-forward svc/dynamodb-admin-dynamodb-admin 8001:8001 >/dev/null 2>&1 &
+    PORT_FORWARD_PID=$!
+    
+    # Save PID
+    echo "$PORT_FORWARD_PID" > "$PID_FILE"
+    
+    # Wait and test
+    sleep 3
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8001 2>/dev/null || echo "000")
+    
+    if [ "$HTTP_CODE" = "200" ]; then
+        print_success "DynamoDB Admin interface started successfully!"
+        print_info "URL: http://localhost:8001"
+        print_info "Table: justtrack-dev-devops-consumer-events"
+        print_info "PID: $PORT_FORWARD_PID"
+        
+        # Ask user if they want to open browser
+        if command -v open >/dev/null 2>&1; then
+            echo ""
+            echo -n "Open DynamoDB Admin interface in browser? (Y/n): "
+            read -r response
+            case "$response" in
+                [nN]|[nN][oO])
+                    print_info "Browser not opened. Access manually at: http://localhost:8001"
+                    ;;
+                *)
+                    print_info "Opening browser..."
+                    open http://localhost:8001
+                    ;;
+            esac
+        else
+            print_info "Browser command not available. Access manually at: http://localhost:8001"
+        fi
+        
+        return 0
+    else
+        print_error "Failed to start admin interface"
+        kill "$PORT_FORWARD_PID" 2>/dev/null || true
+        rm -f "$PID_FILE"
+        return 1
+    fi
+}
+
 # Verify deployment (simple checks)
 verify_deployment() {
     print_info "=== Deployment Verification ==="
@@ -195,6 +263,18 @@ verify_deployment() {
     print_success "Deployment verification completed"
 }
 
+# Stop admin interface function (for cleanup)
+stop_admin_interface() {
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if kill -0 "$PID" 2>/dev/null; then
+            kill "$PID"
+            print_info "Admin interface stopped (PID: $PID)"
+        fi
+        rm -f "$PID_FILE"
+    fi
+}
+
 # Main deployment function
 main() {
     local start_time=$(date +%s)
@@ -208,40 +288,56 @@ main() {
     deploy_applications
     verify_deployment
     
+    # Start admin interface for comprehensive demo
+    start_admin_interface
+    
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
     
     echo ""
-    echo "DEPLOYMENT COMPLETED SUCCESSFULLY!"
-    echo "===================================="
+    echo "COMPREHENSIVE DEMO DEPLOYMENT COMPLETED!"
+    echo "========================================"
     echo ""
     echo "Deployment Summary:"
     echo "  • Duration: ${duration}s"
     echo "  • AWS Resources: 4 created (SNS, SQS, DynamoDB, Subscription)"
     echo "  • Applications: 3 deployed (Producer, Consumer, DynamoDB Admin)"
     echo "  • LocalStack: Running and configured"
+    echo "  • Admin Interface: Started and accessible"
     echo ""
-    echo "Access Information:"
-    echo "  • DynamoDB Admin: ./admin-bg.sh start"
-    echo "  • Or manually: kubectl port-forward svc/dynamodb-admin-dynamodb-admin 8001:8001"
-    echo "  • Then open: http://localhost:8001"
+    echo "DynamoDB Admin Interface:"
+    echo "  • URL: http://localhost:8001"
+    echo "  • Table: justtrack-dev-devops-consumer-events"
+    echo "  • Access the interface to see real-time events"
     echo ""
-    echo "Monitor logs:"
-    echo "  • Producer: kubectl logs -l app=producer-producer -f"
-    echo "  • Consumer: kubectl logs -l app=consumer-consumer -f"
+    echo "Monitor the event flow:"
+    echo "  • Producer logs: kubectl logs -l app=producer-producer -f"
+    echo "  • Consumer logs: kubectl logs -l app=consumer-consumer -f"
+    echo "  • Watch DynamoDB table in browser for real-time events"
     echo ""
-    echo "Run tests:"
-    echo "  • ./test.sh"
+    echo "Additional commands:"
+    echo "  • Run tests: ./test.sh"
+    echo "  • Stop admin interface: kill \$(cat $PID_FILE)"
+    echo "  • Full cleanup: ./cleanup.sh"
     echo ""
-    echo "Cleanup when done:"
-    echo "  • ./cleanup.sh"
+    echo "Demo is ready! Check your browser for the DynamoDB interface."
 }
 
 # Handle script arguments
 case "${1:-}" in
     --help|-h)
-        echo "Usage: $0 [--help]"
-        echo "Deploys the complete cloud-native event-driven architecture"
+        echo "Usage: $0 [--help|--stop-admin]"
+        echo "Deploys the complete cloud-native event-driven architecture with integrated admin interface"
+        echo ""
+        echo "Options:"
+        echo "  --help        Show this help message"
+        echo "  --stop-admin  Stop only the admin interface"
+        exit 0
+        ;;
+    --stop-admin)
+        echo "Stopping DynamoDB Admin Interface"
+        echo "=================================="
+        stop_admin_interface
         exit 0
         ;;
     *)
