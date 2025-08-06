@@ -87,9 +87,10 @@ Run comprehensive tests:
 
 ### Data Access
 
-Access the DynamoDB admin interface:
+View stored events via DynamoDB admin web interface:
 ```bash
-./pipeline/admin-bg.sh start
+./pipeline/admin-bg.sh start    # Opens http://localhost:8001
+./pipeline/admin-bg.sh stop     # Stop when done
 ```
 
 ### Cleanup
