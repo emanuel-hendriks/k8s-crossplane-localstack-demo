@@ -20,7 +20,6 @@
 
 - **Docker Desktop**: 4.40.0+ with Kubernetes enabled (4GB+ RAM allocated)
 - **Kubernetes Context**: Must be set to `docker-desktop`
-- **Network**: Corporate firewalls may require certificate configuration (see certificates/ folder)
 - **Important**: Ensure Docker Desktop setting "Use containerd for pulling and storing images" is **disabled**
 
 
@@ -251,7 +250,6 @@ task1/
 │           └── service.yaml            # Admin interface service
 ├── k8s/                                # Kubernetes manifests
 │   └── localstack.yaml                 # LocalStack deployment for AWS simulation
-└── certificates/                       # SSL certificates for corporate environments
     └── combined-ca-bundle.crt          # CA certificate bundle (conditional usage)
 ```
 
