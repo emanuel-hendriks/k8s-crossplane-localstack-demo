@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-dynamodb-admin
+  labels:
+    app: {{ .Release.Name }}-dynamodb-admin
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-dynamodb-admin
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-dynamodb-admin
+    spec:
+      containers:
+      - name: dynamodb-admin
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: DYNAMO_ENDPOINT
+          value: {{ .Values.env.DYNAMO_ENDPOINT | quote }}
+        - name: AWS_REGION
+          value: {{ .Values.env.AWS_REGION | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.env.AWS_ACCESS_KEY_ID | quote }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.env.AWS_SECRET_ACCESS_KEY | quote }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }} 

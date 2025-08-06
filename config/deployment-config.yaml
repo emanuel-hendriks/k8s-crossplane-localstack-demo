@@ -1,0 +1,56 @@
+# Deployment Configuration
+# Cloud-Native Event-Driven Architecture Configuration
+
+# Timeouts (in seconds)
+timeouts:
+  provider_ready: 180          # AWS provider installation timeout
+  resource_ready: 300          # Crossplane resource creation timeout
+  rollout_status: 120          # Kubernetes rollout timeout
+  helm_install: 300            # Helm installation timeout
+  localstack_ready: 300        # LocalStack readiness timeout
+  progress_interval: 30        # Progress reporting interval
+  sleep_interval: 10           # Sleep between checks
+  resource_wait: 120           # Individual resource wait time
+  retry_attempts: 3            # Number of retry attempts
+
+# AWS Resources Configuration
+aws_resources:
+  region: "eu-central-1"
+  topic_name: "justtrack-dev-devops-producer-events"
+  queue_name: "justtrack-dev-devops-consumer-events"
+  table_name: "justtrack-dev-devops-consumer-events"
+  subscription_name: "justtrack-dev-devops-subscription"
+  
+# LocalStack Configuration
+localstack:
+  namespace: "localstack"
+  service_name: "localstack"
+  port: 4566
+  endpoint: "http://localstack.localstack.svc.cluster.local:4566"
+
+# Crossplane Configuration
+crossplane:
+  namespace: "crossplane-system"
+  provider_name: "provider-aws"
+  provider_package: "xpkg.upbound.io/crossplane-contrib/provider-aws:v0.47.0"
+  runtime_config: "localstack-config"
+
+# Application Configuration
+applications:
+  - name: "producer"
+    image: "ghcr.io/justtrackio/devopstest-producer:latest"
+  - name: "consumer"
+    image: "ghcr.io/justtrackio/devopstest-consumer:latest"
+  - name: "dynamodb-admin"
+    port: 8001
+
+# Certificate Configuration
+certificates:
+  config_map_name: "ca-certificates"
+  cert_file_path: "/etc/ssl/certs/combined-ca-bundle.crt"
+  local_cert_file: "certificates/combined-ca-bundle.crt"
+
+# Verification Configuration
+verification:
+  expected_resources: 4        # SNS topic, SQS queue, DynamoDB table, SNS subscription
+  expected_applications: 3     # producer, consumer, dynamodb-admin

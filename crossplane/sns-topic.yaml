@@ -1,0 +1,15 @@
+apiVersion: sns.aws.crossplane.io/v1beta1
+kind: Topic
+metadata:
+  name: justtrack-dev-devops-producer-events
+spec:
+  forProvider:
+    name: justtrack-dev-devops-producer-events
+    region: eu-central-1
+    tags:
+    - key: Environment
+      value: dev
+    - key: Project
+      value: justtrack-devops
+  providerConfigRef:
+    name: default

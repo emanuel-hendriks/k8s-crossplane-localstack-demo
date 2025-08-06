@@ -1,0 +1,13 @@
+apiVersion: sns.aws.crossplane.io/v1beta1
+kind: Subscription
+metadata:
+  name: justtrack-dev-devops-subscription
+spec:
+  forProvider:
+    region: eu-central-1
+    protocol: sqs
+    topicArnRef:
+      name: justtrack-dev-devops-producer-events
+    endpoint: arn:aws:sqs:eu-central-1:000000000000:justtrack-dev-devops-consumer-events
+  providerConfigRef:
+    name: default

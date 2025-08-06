@@ -1,0 +1,58 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: localstack-config
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            env:
+            - name: AWS_ENDPOINT_URL
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ACCESS_KEY_ID
+              value: "test"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "test"
+            - name: AWS_DEFAULT_REGION
+              value: "eu-central-1"
+            # Certificate configuration for corporate environments
+            - name: SSL_CERT_FILE
+              value: "/etc/ssl/certs/combined-ca-bundle.crt"
+            - name: SSL_CERT_DIR
+              value: "/etc/ssl/certs"
+            - name: REQUESTS_CA_BUNDLE
+              value: "/etc/ssl/certs/combined-ca-bundle.crt"
+            - name: CURL_CA_BUNDLE
+              value: "/etc/ssl/certs/combined-ca-bundle.crt"
+            # Disable AWS SDK certificate verification for LocalStack (internal traffic)
+            - name: AWS_CA_BUNDLE
+              value: "/etc/ssl/certs/combined-ca-bundle.crt"
+            # Force AWS SDK to use our certificate bundle
+            - name: AWS_CONFIG_FILE
+              value: "/dev/null"
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: "/dev/null"
+            # Disable AWS SDK retries that might cause issues with corporate proxies
+            - name: AWS_MAX_ATTEMPTS
+              value: "1"
+            # Ensure LocalStack endpoint is used and not overridden
+            - name: AWS_ENDPOINT_URL_S3
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ENDPOINT_URL_SNS
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ENDPOINT_URL_SQS
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ENDPOINT_URL_DYNAMODB
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            volumeMounts:
+            - name: ca-certificates
+              mountPath: /etc/ssl/certs
+              readOnly: true
+          volumes:
+          - name: ca-certificates
+            configMap:
+              name: ca-certificates

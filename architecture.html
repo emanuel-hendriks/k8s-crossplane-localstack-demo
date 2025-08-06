@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JustTrack Event-Driven Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .mermaid { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>JustTrack Event-Driven Architecture</h1>
+    
+    <div class="mermaid">
+graph TB
+    subgraph "Kubernetes Cluster"
+        subgraph "Crossplane System"
+            CP[Crossplane Controller]
+            AWS_PROV[AWS Provider v0.47.0]
+            PC[ProviderConfig]
+            RC[RuntimeConfig]
+        end
+        
+        subgraph "LocalStack Namespace"
+            LS["LocalStack Container<br/>SNS + SQS + DynamoDB"]
+        end
+        
+        subgraph "Application Namespace"
+            PROD["Producer Pod<br/>ghcr.io/justtrackio/devopstest-producer"]
+            CONS["Consumer Pod<br/>ghcr.io/justtrackio/devopstest-consumer"]
+            ADMIN["DynamoDB Admin Pod<br/>aaronshaf/dynamodb-admin"]
+        end
+        
+        subgraph "AWS Resources (via LocalStack)"
+            SNS_TOPIC["📡 SNS Topic<br/>justtrack-dev-devops-producer-events"]
+            SQS_QUEUE["📋 SQS Queue<br/>justtrack-dev-devops-consumer-events"]
+            DDB_TABLE["🗄️ DynamoDB Table<br/>justtrack-dev-devops-consumer-events<br/>Hash Key: Id (String)"]
+            SNS_SUB["🔗 SNS Subscription<br/>Topic → Queue"]
+        end
+        
+        subgraph "Helm Charts"
+            H_PROD[Producer Chart]
+            H_CONS[Consumer Chart]
+            H_ADMIN[Admin Chart]
+        end
+    end
+    
+    subgraph "External Access"
+        USER["👤 Developer"]
+        BROWSER["🌐 Browser<br/>localhost:8001"]
+    end
+    
+    %% Infrastructure provisioning
+    CP --> AWS_PROV
+    AWS_PROV --> PC
+    PC --> RC
+    RC --> LS
+    
+    %% Crossplane manages AWS resources
+    CP -.->|"Creates & Manages"| SNS_TOPIC
+    CP -.->|"Creates & Manages"| SQS_QUEUE
+    CP -.->|"Creates & Manages"| DDB_TABLE
+    CP -.->|"Creates & Manages"| SNS_SUB
+    
+    %% Helm deployments
+    H_PROD --> PROD
+    H_CONS --> CONS
+    H_ADMIN --> ADMIN
+    
+    %% Event flow
+    PROD -->|"1. Publishes Events<br/>Every 1 second"| SNS_TOPIC
+    SNS_TOPIC -->|"2. Routes via<br/>Subscription"| SNS_SUB
+    SNS_SUB -->|"3. Delivers to"| SQS_QUEUE
+    SQS_QUEUE -->|"4. Polls & Processes"| CONS
+    CONS -->|"5. Stores Events"| DDB_TABLE
+    
+    %% LocalStack simulation
+    LS -.->|"Simulates"| SNS_TOPIC
+    LS -.->|"Simulates"| SQS_QUEUE
+    LS -.->|"Simulates"| DDB_TABLE
+    LS -.->|"Simulates"| SNS_SUB
+    
+    %% Admin access
+    ADMIN -->|"Queries"| DDB_TABLE
+    USER -->|"Port Forward<br/>kubectl port-forward"| ADMIN
+    BROWSER -->|"Access UI"| ADMIN
+    
+    %% Monitoring & Logs
+    USER -.->|"kubectl logs -f"| PROD
+    USER -.->|"kubectl logs -f"| CONS
+    USER -.->|"kubectl get topics,queues,tables"| CP
+    
+    %% Styling
+    classDef aws fill:#ff9900,stroke:#232f3e,stroke-width:2px,color:#fff
+    classDef k8s fill:#326ce5,stroke:#1a4c8c,stroke-width:2px,color:#fff
+    classDef helm fill:#0f1689,stroke:#091446,stroke-width:2px,color:#fff
+    classDef crossplane fill:#ff6b35,stroke:#cc5529,stroke-width:2px,color:#fff
+    classDef user fill:#28a745,stroke:#1e7e34,stroke-width:2px,color:#fff
+    
+    class SNS_TOPIC,SQS_QUEUE,DDB_TABLE,SNS_SUB aws
+    class PROD,CONS,ADMIN,LS k8s
+    class H_PROD,H_CONS,H_ADMIN helm
+    class CP,AWS_PROV,PC,RC crossplane
+    class USER,BROWSER user
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

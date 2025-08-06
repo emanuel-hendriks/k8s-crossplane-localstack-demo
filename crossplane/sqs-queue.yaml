@@ -1,0 +1,12 @@
+apiVersion: sqs.aws.crossplane.io/v1beta1
+kind: Queue
+metadata:
+  name: justtrack-dev-devops-consumer-events
+spec:
+  forProvider:
+    region: eu-central-1
+    tags:
+      Environment: dev
+      Project: justtrack-devops
+  providerConfigRef:
+    name: default

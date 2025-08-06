@@ -1,0 +1,96 @@
+# Kubernetes and Helm temporary files
+*.tmp
+*.temp
+.kube/
+.helm/
+
+# Pipeline runtime files
+pipeline/.admin-port-forward.pid
+pipeline/*.log
+pipeline/temp/
+pipeline/.temp/
+
+# Certificate files (sensitive)
+certificates/*.crt
+certificates/*.pem
+certificates/*.key
+certificates/private/
+
+# Local development files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.out
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Docker files (if any)
+.dockerignore
+docker-compose.override.yml
+
+# Helm chart dependencies
+charts/*/charts/
+charts/*/Chart.lock
+
+# Crossplane generated files
+crossplane/generated/
+crossplane/.generated/
+
+# Test results
+test-results/
+test-output/
+
+# Local configuration overrides
+config.local.yaml
+values.local.yaml
+local-config/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# MacOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux specific
+*~
+.nfs*
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk

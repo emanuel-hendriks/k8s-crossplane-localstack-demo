@@ -1,0 +1,21 @@
+apiVersion: dynamodb.aws.crossplane.io/v1alpha1
+kind: Table
+metadata:
+  name: justtrack-dev-devops-consumer-events
+spec:
+  forProvider:
+    region: eu-central-1
+    attributeDefinitions:
+    - attributeName: Id
+      attributeType: S
+    keySchema:
+    - attributeName: Id
+      keyType: HASH
+    billingMode: PAY_PER_REQUEST
+    tags:
+    - key: Environment
+      value: dev
+    - key: Project
+      value: justtrack-devops
+  providerConfigRef:
+    name: default

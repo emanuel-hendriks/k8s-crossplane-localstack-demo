@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-producer
+  labels:
+    app: {{ .Release.Name }}-producer
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-producer
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-producer
+    spec:
+      containers:
+      - name: producer
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: CLOUD_AWS_DEFAULTS_ENDPOINT
+          value: {{ .Values.env.CLOUD_AWS_DEFAULTS_ENDPOINT | quote }}
+        - name: AWS_DEFAULT_REGION
+          value: {{ .Values.env.AWS_DEFAULT_REGION | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.env.AWS_ACCESS_KEY_ID | quote }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.env.AWS_SECRET_ACCESS_KEY | quote }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }} 
