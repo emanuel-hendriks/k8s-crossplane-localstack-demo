@@ -10,11 +10,6 @@ pipeline/*.log
 pipeline/temp/
 pipeline/.temp/
 
-# Certificate files (sensitive)
-certificates/*.crt
-certificates/*.pem
-certificates/*.key
-certificates/private/
 
 # Local development files
 .DS_Store
@@ -95,5 +90,3 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Certificates folder (contains sensitive CATO Network certificates)
-certificates/
