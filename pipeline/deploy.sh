@@ -51,7 +51,7 @@ echo ""
 echo -e "${BLUE}Setting up AWS Provider...${NC}"
 
 # Apply deployment runtime config and provider
-kubectl apply -f "$PROJECT_ROOT/crossplane/deployment-runtime-config-clean.yaml" 2>/dev/null || true
+kubectl apply -f "$PROJECT_ROOT/crossplane/deployment-runtime-config.yaml" 2>/dev/null || true
 kubectl apply -f "$PROJECT_ROOT/crossplane/provider.yaml" 2>/dev/null || true
 
 # Wait for provider to become healthy
@@ -209,4 +209,4 @@ echo "  • Producer logs: kubectl logs -l app=producer-producer -f"
 echo "  • Consumer logs: kubectl logs -l app=consumer-consumer -f"
 echo ""
 echo "Cleanup:"
-echo "  • Run './pipeline/cleanup-minimal.sh' to clean up"
+echo "  • Run './cleanup.sh' to clean up"
