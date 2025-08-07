@@ -94,3 +94,6 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
+
+# Certificates folder (contains sensitive CATO Network certificates)
+certificates/
