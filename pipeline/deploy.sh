@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Minimal Safe Deployment Script
-# No complex error handling, no parallel processing, no terminal crashes
+# Deployment Script
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
