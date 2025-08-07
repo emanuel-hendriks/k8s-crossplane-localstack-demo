@@ -19,24 +19,7 @@ spec:
               value: "test"
             - name: AWS_DEFAULT_REGION
               value: "eu-central-1"
-            # Certificate configuration for corporate environments
-            - name: SSL_CERT_FILE
-              value: "/etc/ssl/certs/combined-ca-bundle.crt"
-            - name: SSL_CERT_DIR
-              value: "/etc/ssl/certs"
-            - name: REQUESTS_CA_BUNDLE
-              value: "/etc/ssl/certs/combined-ca-bundle.crt"
-            - name: CURL_CA_BUNDLE
-              value: "/etc/ssl/certs/combined-ca-bundle.crt"
-            # Disable AWS SDK certificate verification for LocalStack (internal traffic)
-            - name: AWS_CA_BUNDLE
-              value: "/etc/ssl/certs/combined-ca-bundle.crt"
-            # Force AWS SDK to use our certificate bundle
-            - name: AWS_CONFIG_FILE
-              value: "/dev/null"
-            - name: AWS_SHARED_CREDENTIALS_FILE
-              value: "/dev/null"
-            # Disable AWS SDK retries that might cause issues with corporate proxies
+            # Disable AWS SDK retries that might cause issues
             - name: AWS_MAX_ATTEMPTS
               value: "1"
             # Ensure LocalStack endpoint is used and not overridden
@@ -48,11 +31,8 @@ spec:
               value: "http://localstack.localstack.svc.cluster.local:4566"
             - name: AWS_ENDPOINT_URL_DYNAMODB
               value: "http://localstack.localstack.svc.cluster.local:4566"
-            volumeMounts:
-            - name: ca-certificates
-              mountPath: /etc/ssl/certs
-              readOnly: true
-          volumes:
-          - name: ca-certificates
-            configMap:
-              name: ca-certificates
+            # Force AWS SDK to not use default config files
+            - name: AWS_CONFIG_FILE
+              value: "/dev/null"
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: "/dev/null"
