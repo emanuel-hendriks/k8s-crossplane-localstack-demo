@@ -90,7 +90,7 @@ else
 fi
 
 echo ""
-echo -e "${GREEN}PARTIAL CLEANUP COMPLETED${NC}"
+echo -e "${GREEN}CLEANUP COMPLETED${NC}"
 echo "=========================="
 echo "Preserved:"
 echo "  • Crossplane deployment"

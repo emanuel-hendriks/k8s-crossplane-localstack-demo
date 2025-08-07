@@ -1,3 +1,6 @@
+# This file configures AWS credentials and provider settings for Crossplane
+
+# Secret containing AWS credentials
 apiVersion: v1
 kind: Secret
 metadata:
@@ -5,23 +8,29 @@ metadata:
   namespace: crossplane-system
 type: Opaque
 stringData:
+  # AWS credentials in INI format
+  # These are test credentials for local development
   creds: |
     [default]
     aws_access_key_id = test
     aws_secret_access_key = test
     region = eu-central-1
 ---
+# AWS Provider configuration for Crossplane
+# This configures how Crossplane connects to AWS services
 apiVersion: aws.crossplane.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
 spec:
+  # Configure credentials source from the Secret above
   credentials:
     source: Secret
     secretRef:
       name: aws-creds
       namespace: crossplane-system
       key: creds
+  # Configure endpoint for LocalStack (local AWS emulator)
   endpoint:
     url:
       type: Static

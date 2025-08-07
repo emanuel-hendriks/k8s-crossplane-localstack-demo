@@ -23,8 +23,6 @@ spec:
             - name: AWS_MAX_ATTEMPTS
               value: "1"
             # Ensure LocalStack endpoint is used and not overridden
-            - name: AWS_ENDPOINT_URL_S3
-              value: "http://localstack.localstack.svc.cluster.local:4566"
             - name: AWS_ENDPOINT_URL_SNS
               value: "http://localstack.localstack.svc.cluster.local:4566"
             - name: AWS_ENDPOINT_URL_SQS
