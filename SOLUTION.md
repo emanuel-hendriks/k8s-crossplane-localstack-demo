@@ -19,113 +19,9 @@
 
 This project implements a cloud-native event-driven architecture using Docker Desktop Kubernetes, Crossplane, and Helm. The solution demonstrates a producer-consumer pattern with AWS services (SNS, SQS, DynamoDB) simulated locally via LocalStack.
 
+**Architecture Flow**: Producer generates events → SNS topic → SQS queue → Consumer processes events → DynamoDB storage. A web-based admin interface provides real-time visualization of stored events.
+
 ## Architecture
-
-**Functional Architecture**: Producer generates events → SNS topic → SQS queue → Consumer processes events → DynamoDB storage. A web-based admin interface provides real-time visualization of stored events.
-
-
-### 4-Layer Deployment Architecture Stack
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    LAYER 4: APPLICATIONS                    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  Producer   │  │  Consumer   │  │  DynamoDB Admin     │  │
-│  │             │  │             │  │                     │  │
-│  │ Sends msgs  │  │ Reads msgs  │  │ Shows data in       │  │
-│  │ to SNS      │  │ from SQS    │  │ web interface       │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    LAYER 3: LOCALSTACK                      │
-│                    (Fake AWS Services)                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ SNS Topic   │  │ SQS Queue   │  │ DynamoDB Table      │  │
-│  │             │  │             │  │                     │  │
-│  │ Receives    │──│ Gets msgs   │──│ Stores processed    │  │
-│  │ messages    │  │ via sub     │  │ messages            │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   LAYER 2: CROSSPLANE                       │
-│                 (Infrastructure Manager, CR)                │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ topic.yaml  │  │ queue.yaml  │  │ table.yaml          │  │
-│  │             │  │             │  │                     │  │ 
-│  │ Tells       │  │ Tells       │  │ Tells               │  │
-│  │ LocalStack  │  │ LocalStack  │  │ LocalStack          │  │
-│  │ "create SNS"│  │ "create SQS"│  │ "create DynamoDB"   │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   LAYER 1: KUBERNETES                       │
-│                    (Container Platform)                     │
-│  Runs all the containers and manages networking             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Layer Responsibilities
-
-**Layer 1: Kubernetes (Foundation)**
-- Container orchestration platform
-- Runs all containers (LocalStack, applications, Crossplane)
-- Manages networking between containers
-- Provides service discovery
-
-**Layer 2: Crossplane (Infrastructure Manager)**
-- Kubernetes extension for managing cloud resources (CR) 
-- Reads YAML files (sns-topic.yaml, sqs-queue.yaml, etc.)
-- Makes API calls to LocalStack to create resources
-- Tracks resource state as Kubernetes Custom Resource Definitions (CRDs)
-
-**Layer 3: LocalStack (Simulated AWS)**
-- Container that simulates AWS services
-- Provides SNS, SQS, DynamoDB APIs
-- Stores data in memory (not persistent)
-- Responds to AWS API calls from applications and Crossplane
-
-**Layer 4: Applications (Business Logic)**
-- Producer: Sends messages to SNS
-- Consumer: Reads from SQS, writes to DynamoDB
-- Admin: Shows DynamoDB data in web interface
-- Connect to LocalStack using standard AWS SDKs
-
-**Helm (Package Manager)**
-- Manages Kubernetes application deployments across all layers
-- Handles application lifecycle (install, upgrade, uninstall)
-- Manages configuration through values.yaml files
-- Deploys to Layer 1 (Kubernetes) but manages Layer 4 (Applications)
-- Packages applications as charts (producer, consumer, dynamodb-admin)
-    - **Producer Chart** [`helm/producer/values.yaml`](helm/producer/values.yaml) creates:
-        - Deployment: Runs `ghcr.io/justtrackio/devopstest-producer:latest`
-        - Service: Exposes producer on port `8080`
-        - Environment variables: Points to `LocalStack` endpoint
-    - **Consumer Chart** [`helm/consumer/values.yaml`](helm/consumer/values.yaml) creates:
-        - Deployment: Runs `ghcr.io/justtrackio/devopstest-consumer:latest`
-        - Service: Exposes consumer on port 8080
-        - Environment variables: Points to `LocalStack` endpoint
-    - **DynamoDB Admin Chart** [`helm/dynamodb-admin/values.yaml`](helm/dynamodb-admin/values.yaml) creates:
-        - Deployment: Runs `aaronshaf/dynamodb-admin:latest`
-        - Service: Exposes admin UI on port 8001
-        - Environment variables: Points to LocalStack DynamoDB (`DYNAMO_ENDPOINT: "http://localstack.localstack.svc.cluster.local:4566"`)
-
-```
-http://localstack.localstack.svc.cluster.local:4566
-│      │         │         │   │       │     │
-│      │         │         │   │       │     └── Port number
-│      │         │         │   │       └────── Cluster domain
-│      │         │         │   └────────────── Service type indicator (Kubernetes DNS convention indicating this is a Service)
-│      │         │         └────────────────── Namespace
-│      │         └──────────────────────────── Service name
-│      └─────────────────────────────────────── Service name (repeated)
-└────────────────────────────────────────────── Protocol
-```
 
 ### Namespace Organization
 
@@ -146,68 +42,11 @@ The system operates across three namespaces:
 - **Consumer**: Processes events from SQS, stores in DynamoDB
 - **DynamoDB Admin**: Web interface for data visualization
 
-**AWS Resources **
+**AWS Resources**
 - **SNS Topic**: `justtrack-dev-devops-producer-events`
 - **SQS Queue**: `justtrack-dev-devops-consumer-events`
 - **DynamoDB Table**: `justtrack-dev-devops-consumer-events`
 - **SNS Subscription**: Routes messages from topic to queue
-
-### System Flow
-
-**During Deployment:**
-1. [`deploy.sh`](task1/pipeline) runs
-2. Helm installs Crossplane to Kubernetes
-3. Kubernetes starts LocalStack container
-4. **SNS Topic Creation:**
-   - Crossplane reads `sns-topic.yaml`
-   - Crossplane calls LocalStack API: "create SNS topic"
-   - LocalStack creates fake SNS topic in memory
-    
-5. **SQS Queue Creation:**
-   - Crossplane reads `sqs-queue.yaml`
-   - Crossplane calls LocalStack API: "create SQS queue"
-   - LocalStack creates fake SQS queue in memory
-
-6. **DynamoDB Table Creation:**
-   - Crossplane reads `dynamodb-table.yaml`
-   - Crossplane calls LocalStack API: "create DynamoDB table"
-   - LocalStack creates fake DynamoDB table in memory
-
-7. **SNS Subscription Creation:**
-   - Crossplane reads `sns-subscription.yaml`
-   - Crossplane calls LocalStack API: "create SNS subscription"
-   - LocalStack creates fake subscription linking SNS topic to SQS queue
-
-8. Helm installs application charts (producer, consumer, dynamodb-admin)
-9. Applications start and connect to LocalStack
-
-**During Runtime:**
-1. Producer app → sends message → LocalStack SNS Topic
-2. SNS Subscription → forwards message → LocalStack SQS Queue
-3. Consumer app → reads message → LocalStack SQS
-4. Consumer app → stores data → LocalStack DynamoDB
-5. Admin app → reads data → LocalStack DynamoDB → shows in web UI
-
-**During Cleanup:**
-1. `cleanup.sh` runs
-2. Helm uninstalls application releases (producer, consumer, dynamodb-admin)
-3. Delete Crossplane YAML objects (`kubectl delete` topics)
-4. Crossplane sees deletion → calls LocalStack API: "delete SNS topic"
-5. LocalStack deletes fake SNS topic from memory
-6. Delete LocalStack container
-7. All fake AWS resources disappear (they were in memory)
-8. Optionally: Helm uninstalls Crossplane
-
-### Resource Mapping
-
-| What You See in kubectl | What It Actually Is | Where It Lives | Managed By |
-|-------------------------|-------------------|----------------|------------|
-| `kubectl get topics` | Kubernetes CRD object | Kubernetes API | Crossplane |
-| SNS Topic | Fake AWS resource | LocalStack memory | LocalStack |
-| `kubectl get pods` | Running containers | Docker | Kubernetes |
-| Producer app | Container | Kubernetes pod | Helm |
-| LocalStack | Container | Kubernetes pod | Kubernetes |
-| `helm list` | Deployed applications | Helm releases | Helm |
 
 ### Event Flow
 
@@ -223,20 +62,6 @@ Events are generated with this structure:
  "CreatedAt": "2025-08-03T..."
 }
 ```
-
-### Architecture Benefits
-
-**Development Advantages:**
-- No AWS costs - Everything runs locally
-- Fast development - No internet dependency
-- Infrastructure as Code - Everything in YAML
-- Kubernetes native - Uses standard K8s patterns
-- Production ready - Same patterns work with real AWS
-
-**Trade-offs:**
-- Not persistent - Data lost when LocalStack restarts
-- Limited features - LocalStack doesn't support all AWS features
-- Memory usage - Everything runs in local machine
 
 ### Deployment
 
@@ -268,18 +93,12 @@ View stored events via DynamoDB admin web interface:
 ./pipeline/admin-bg.sh stop     # Stop when done
 ```
 
-### Cleanup Process
+### Cleanup
 
 Remove all resources:
 ```bash
 ./pipeline/cleanup.sh
 ```
-
-**Cleanup Sequence:**
-1. Helm uninstalls application releases (producer, consumer, dynamodb-admin)
-2. Delete Crossplane CRDs (triggers LocalStack resource removal)
-3. Remove LocalStack namespace (destroys simulated AWS environment)
-4. Optionally remove Crossplane system (Helm uninstall crossplane)
 
 ## Project Structure
 
@@ -328,48 +147,6 @@ kubectl scale deployment consumer-consumer --replicas=2  # Scale processing
 ```bash
 kubectl get pods
 kubectl get topics,queues,tables,subscriptions
-helm list                                    # Show Helm releases
-helm status producer                         # Check specific release
 ```
 
-**Helm operations:**
-```bash
-helm upgrade producer ./helm/producer        # Update application
-helm rollback consumer 1                     # Rollback to previous version
-helm uninstall dynamodb-admin               # Remove specific application
-```
-
-**Inspect LocalStack resources directly:**
-```bash
-# Port forward to LocalStack
-kubectl port-forward -n localstack svc/localstack 4566:4566
-
-# Use AWS CLI against LocalStack
-aws --endpoint-url=http://localhost:4566 sns list-topics
-aws --endpoint-url=http://localhost:4566 sqs list-queues
-aws --endpoint-url=http://localhost:4566 dynamodb list-tables
-```
-
-## Common Questions
-
-**Are these real AWS resources?**
-No. They are simulated resources running in LocalStack container. No real AWS account is needed.
-
-**What does Crossplane actually do?**
-Crossplane translates Kubernetes YAML definitions into AWS API calls made to LocalStack instead of real AWS.
-
-**Where is the data stored?**
-In LocalStack's memory. When LocalStack container stops, all data is lost.
-
-**What happens when I delete a Crossplane resource?**
-```
-kubectl delete topic my-topic
-    ↓
-Crossplane sees the deletion
-    ↓
-Crossplane calls LocalStack: "delete topic"
-    ↓
-LocalStack removes topic from memory
-    ↓
-Topic is gone
-```
+This implementation demonstrates Kubernetes expertise, Crossplane proficiency, Helm mastery, and production-ready cloud-native development practices.
