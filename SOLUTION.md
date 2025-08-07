@@ -23,7 +23,6 @@ task1/
 ├── README.md                           # Original task requirements
 ├── SOLUTION.md                         # Implementation guide (this file)
 ├── .gitignore                          # Git ignore patterns
-├── certificates/                       # Certificate management (auto-generated)
 ├── pipeline/                           # Deployment automation
 │   ├── deploy.sh                       # Main deployment script
 │   ├── test.sh                         # Testing and verification
