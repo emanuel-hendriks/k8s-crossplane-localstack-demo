@@ -454,12 +454,12 @@ verify_cleanup() {
         esac
     }
     
-    # Batch verification operations
+    # Batch verification operations - only check resources deployed by deploy.sh
     echo ""
-    print_info "Application Resources:"
-    verify_resource "Pods in default namespace" "kubectl get pods --no-headers" "empty"
-    verify_resource "Helm releases" "helm list --short" "empty"
-    verify_resource "Services (except kubernetes)" "kubectl get services --no-headers" "kubernetes_only"
+    print_info "Application Resources (deploy.sh targets):"
+    verify_resource "Target application pods" "kubectl get pods -l 'app.kubernetes.io/instance in (producer,consumer,dynamodb-admin)' --no-headers" "empty"
+    verify_resource "Target Helm releases" "helm list --short | grep -E '^(producer|consumer|dynamodb-admin)$'" "empty"
+    verify_resource "Target application services" "kubectl get services --no-headers | grep -E '(producer-producer|consumer-consumer|dynamodb-admin-dynamodb-admin)'" "empty"
     
     echo ""
     print_info "Crossplane Resources:"
@@ -514,19 +514,19 @@ verify_cleanup() {
     local total_checks=$((verification_passed + verification_failed))
     
     if [[ $verification_failed -eq 0 ]]; then
-        print_success "✅ CLEANUP VERIFICATION PASSED!"
+        print_success "CLEANUP VERIFICATION PASSED!"
         print_success "All checks passed: $verification_passed/$total_checks"
         echo ""
         print_success "Environment Status:"
         echo "  • All application resources removed"
-        echo "  • All AWS resources cleaned up"
+        echo "  • All Crossplane CRDs deleted (AWS resources removed from LocalStack)"
         echo "  • All test resources removed"
-        echo "  • LocalStack completely removed"
+        echo "  • LocalStack completely removed (simulated AWS environment destroyed)"
         echo "  • No leftover pods or services"
         echo ""
-        print_info "🚀 Environment is ready for fresh deployment!"
+        print_info "Environment is ready for fresh deployment!"
     else
-        print_error "❌ CLEANUP VERIFICATION ISSUES FOUND!"
+        print_error "CLEANUP VERIFICATION ISSUES FOUND!"
         print_error "Failed checks: $verification_failed/$total_checks"
         print_error "Passed checks: $verification_passed/$total_checks"
         echo ""
@@ -592,7 +592,7 @@ main() {
         echo "  • All resources will be created from scratch"
         echo "  • No conflicts or leftover state expected"
     else
-        print_warning "⚠️  Some verification checks failed"
+        print_warning "Some verification checks failed"
         echo ""
         echo "Recommendations:"
         echo "  • Review the issues listed above"
