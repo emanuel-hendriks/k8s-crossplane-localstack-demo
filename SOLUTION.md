@@ -43,6 +43,62 @@ task1/
     └── localstack.yaml                 # LocalStack deployment
 ```
 
+## Cluster Architecture 
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Docker Desktop Kubernetes                    │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐          │
+│  │  Producer   │───▶│ LocalStack  │───▶│  Consumer   │          │
+│  │ Application │    │ (AWS Sim.)  │    │ Application │          │
+│  └─────────────┘    └─────────────┘    └─────────────┘          │
+│                           │                    │                │
+│                           ▼                    ▼                │
+│                    ┌─────────────┐    ┌─────────────┐           │
+│                    │ SNS → SQS   │    │  DynamoDB   │           │
+│                    │ (Crossplane)│    │ (Crossplane)│           │
+│                    └─────────────┘    └─────────────┘           │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │              DynamoDB Admin Interface                   │    │
+│  │           (Real-time Event Visualization)               │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Network Topology
+
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        KUBERNETES CLUSTER                       │
+│                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────┐  │
+│  │   default ns    │    │  localstack ns  │    │crossplane-  │  │
+│  │                 │    │                 │    │system ns    │  │
+│  │ ┌─────────────┐ │    │ ┌─────────────┐ │    │             │  │
+│  │ │Producer Pod │ │    │ │LocalStack   │ │    │ Crossplane  │  │
+│  │ │             │ │    │ │Pod          │ │    │ Pods        │  │
+│  │ │10.1.0.10    │─┼────┼→│10.1.1.20    │ │    │             │  │
+│  │ └─────────────┘ │    │ │Port 4566    │ │    │             │  │
+│  │                 │    │ └─────────────┘ │    │             │  │
+│  │ ┌─────────────┐ │    │       │         │    │             │  │
+│  │ │Consumer Pod │ │    │       │         │    │             │  │
+│  │ │             │ │    │ ┌─────▼─────┐   │    │             │  │
+│  │ │10.1.0.11    │─┼────┼→│Service    │   │    │             │  │
+│  │ └─────────────┘ │    │ │localstack │   │    │             │  │
+│  │                 │    │ │10.96.1.100│   │    │             │  │
+│  │ ┌─────────────┐ │    │ └───────────┘   │    │             │  │
+│  │ │Admin Pod    │ │    │                 │    │             │  │
+│  │ │             │ │    │                 │    │             │  │
+│  │ │10.1.0.12    │─┼────┼─────────────────┼────┼─────────────┤  │
+│  │ └─────────────┘ │    │                 │    │             │  │
+│  └─────────────────┘    └─────────────────┘    └─────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
 ## Overview
 
 This project implements a cloud-native event-driven architecture using Docker Desktop Kubernetes, Crossplane, and Helm. The solution demonstrates a producer-consumer pattern with AWS services (SNS, SQS, DynamoDB) simulated locally via LocalStack.
@@ -101,4 +157,4 @@ kubectl get pods                                # Running applications
 helm list                                       # Deployed applications
 ```
 
-This implementation demonstrates Kubernetes expertise, Crossplane proficiency, Helm mastery, and production-ready cloud-native development practices.
+
