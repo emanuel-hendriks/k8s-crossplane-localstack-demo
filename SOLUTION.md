@@ -13,7 +13,7 @@
 ## System Requirements
 
 - **Docker Desktop**: 4.40.0+ with Kubernetes enabled (4GB+ RAM allocated)
-- **Kubernetes Context**: Must be set to `docker-desktop`
+- **Kubernetes Context** [1]: Must be set to `docker-desktop`
 - **Important**: Ensure Docker Desktop setting "Use containerd for pulling and storing images" is **disabled**
 
 ## Project Structure
