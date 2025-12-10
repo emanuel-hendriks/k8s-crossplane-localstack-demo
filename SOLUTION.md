@@ -1,4 +1,4 @@
-# JustTrack DevOps Task 1 - Event-Driven Architecture Implementation
+# Event-Driven Architecture Implementation
 
 ## Quick Start
 
@@ -150,9 +150,9 @@ This project implements a cloud-native event-driven architecture using Docker De
 
 **AWS Resources**
 
-- **SNS Topic**: `justtrack-dev-devops-producer-events`
-- **SQS Queue**: `justtrack-dev-devops-consumer-events`  
-- **DynamoDB Table**: `justtrack-dev-devops-consumer-events`
+- **SNS Topic**: `dev-devops-producer-events`
+- **SQS Queue**: `dev-devops-consumer-events`  
+- **DynamoDB Table**: `dev-devops-consumer-events`
 - **SNS Subscription**: Links topic to queue
 
 ## Usage
