@@ -153,16 +153,16 @@ print_info "Test 2: Crossplane Resources"
 echo "==============================="
 
 # Check Crossplane resources with timeout
-TOPIC_STATUS=$(get_resource_status "topic" "justtrack-dev-devops-producer-events")
+TOPIC_STATUS=$(get_resource_status "topic" "devops-producer-events")
 test_result $([ "$TOPIC_STATUS" = "True" ] && echo 0 || echo 1) "SNS Topic is ready"
 
-QUEUE_STATUS=$(get_resource_status "queue" "justtrack-dev-devops-consumer-events")
+QUEUE_STATUS=$(get_resource_status "queue" "devops-consumer-events")
 test_result $([ "$QUEUE_STATUS" = "True" ] && echo 0 || echo 1) "SQS Queue is ready"
 
-TABLE_STATUS=$(get_resource_status "table" "justtrack-dev-devops-consumer-events")
+TABLE_STATUS=$(get_resource_status "table" "devops-consumer-events")
 test_result $([ "$TABLE_STATUS" = "True" ] && echo 0 || echo 1) "DynamoDB Table is ready"
 
-SUBSCRIPTION_STATUS=$(get_resource_status "subscription" "justtrack-dev-devops-subscription")
+SUBSCRIPTION_STATUS=$(get_resource_status "subscription" "devops-subscription")
 test_result $([ "$SUBSCRIPTION_STATUS" = "True" ] && echo 0 || echo 1) "SNS-SQS Subscription is ready"
 
 echo ""
@@ -281,7 +281,7 @@ if [ -n "$LOCALSTACK_POD" ]; then
         export AWS_SECRET_ACCESS_KEY=test
         export AWS_DEFAULT_REGION=eu-central-1
         export AWS_ENDPOINT_URL=http://localhost:4566
-        aws dynamodb scan --table-name justtrack-dev-devops-consumer-events --max-items 3 2>/dev/null
+        aws dynamodb scan --table-name -dev-devops-consumer-events --max-items 3 2>/dev/null
     '" 2>/dev/null)
 fi
 
@@ -373,13 +373,13 @@ if [ "$ADMIN_SERVICE_EXISTS" = "yes" ]; then
         echo "  • URL: http://localhost:8001"
         echo "  • Status: Accessible and responding"
         echo "  • Purpose: View and manage DynamoDB table data"
-        echo "  • Table: justtrack-dev-devops-consumer-events"
+        echo "  • Table: devops-consumer-events"
         echo "  • Total Items: $ITEM_COUNT events"
         echo ""
         echo "How to access:"
         echo "  1. Run: kubectl port-forward svc/dynamodb-admin-dynamodb-admin 8001:8001"
         echo "  2. Open: http://localhost:8001"
-        echo "  3. Navigate to table: justtrack-dev-devops-consumer-events"
+        echo "  3. Navigate to table: devops-consumer-events"
         echo "  4. View all stored events"
     else
         test_result 1 "DynamoDB Admin interface accessibility (HTTP $HTTP_STATUS)"
